@@ -1,8 +1,11 @@
 import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar, Clock, CheckCircle2, Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PlusCircle, Calendar, Clock, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const tasks = [
   {
@@ -25,6 +28,28 @@ const tasks = [
 
 export default function Index() {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("dueDate");
+  const [filterPriority, setFilterPriority] = useState("all");
+
+  const filteredAndSortedTasks = tasks
+    .filter((task) => {
+      if (filterPriority === "all") return true;
+      return task.priority === filterPriority;
+    })
+    .filter((task) =>
+      task.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === "dueDate") {
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      if (sortBy === "priority") {
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+      }
+      return 0;
+    });
 
   return (
     <Layout>
@@ -43,6 +68,35 @@ export default function Index() {
           </Button>
         </div>
 
+        <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          <Input
+            placeholder="Search tasks..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-xs"
+          />
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="dueDate">Due Date</SelectItem>
+              <SelectItem value="priority">Priority</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterPriority} onValueChange={setFilterPriority}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Priorities</SelectItem>
+              <SelectItem value="high">High Priority</SelectItem>
+              <SelectItem value="medium">Medium Priority</SelectItem>
+              <SelectItem value="low">Low Priority</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
@@ -50,7 +104,7 @@ export default function Index() {
               Today's Tasks
             </h2>
             <div className="space-y-4">
-              {tasks.map((task) => (
+              {filteredAndSortedTasks.map((task) => (
                 <div
                   key={task.id}
                   className="p-4 rounded-lg border border-gray-200 hover:border-primary/50 transition-colors cursor-pointer"
@@ -76,6 +130,9 @@ export default function Index() {
                   </div>
                 </div>
               ))}
+              {filteredAndSortedTasks.length === 0 && (
+                <p className="text-gray-500 text-center py-4">No tasks found</p>
+              )}
             </div>
           </Card>
 
