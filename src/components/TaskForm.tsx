@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,26 +29,49 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
-interface TaskFormData {
-  title: string;
-  description: string;
-  priority: string;
-  category: string;
-  dueDate: Date;
-}
+const taskSchema = z.object({
+  title: z.string().min(1, "Title is required").max(100, "Title is too long"),
+  description: z.string().max(500, "Description is too long").optional(),
+  priority: z.enum(["low", "medium", "high"], {
+    required_error: "Please select a priority level",
+  }),
+  category: z.enum(["home", "school", "shopping", "other"], {
+    required_error: "Please select a category",
+  }),
+  dueDate: z.date({
+    required_error: "Please select a due date",
+  }),
+});
+
+type TaskFormData = z.infer<typeof taskSchema>;
 
 export function TaskForm() {
   const { toast } = useToast();
-  const form = useForm<TaskFormData>();
+  const navigate = useNavigate();
+  const form = useForm<TaskFormData>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+    },
+  });
 
   const onSubmit = (data: TaskFormData) => {
+    // In a real app, this would be an API call
     console.log("Task created:", data);
+    
     toast({
       title: "Task Created",
       description: "Your task has been successfully created.",
     });
-    form.reset();
+    
+    // Navigate back to dashboard after successful creation
+    setTimeout(() => {
+      navigate("/");
+    }, 1000);
   };
 
   return (
