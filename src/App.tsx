@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NewTask from "./pages/NewTask";
 import CalendarView from "./pages/Calendar";
+import Completed from "./pages/Completed";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/tasks/new" element={<NewTask />} />
           <Route path="/calendar" element={<CalendarView />} />
+          <Route path="/completed" element={<Completed />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
