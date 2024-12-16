@@ -1,4 +1,4 @@
-import { Calendar, Home, Users, PlusCircle, CheckCircle2 } from "lucide-react";
+import { Calendar, Home, Users, PlusCircle, CheckCircle2, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,6 +9,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const menuItems = [
   { title: "Dashboard", icon: Home, url: "/" },
@@ -19,6 +21,13 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -39,6 +48,14 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout}>
+                  <div className="flex items-center gap-3">
+                    <LogOut className="w-5 h-5" />
+                    <span>Logout</span>
+                  </div>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
