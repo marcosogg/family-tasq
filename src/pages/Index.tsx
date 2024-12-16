@@ -1,7 +1,8 @@
 import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar, Clock } from "lucide-react";
+import { PlusCircle, Calendar, Clock, CheckCircle2, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const tasks = [
   {
@@ -23,6 +24,8 @@ const tasks = [
 ];
 
 export default function Index() {
+  const navigate = useNavigate();
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
@@ -31,7 +34,10 @@ export default function Index() {
             <h1 className="text-3xl font-bold text-gray-900">Welcome to Tazq</h1>
             <p className="text-gray-600 mt-2">Manage your family tasks efficiently</p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90">
+          <Button 
+            onClick={() => navigate("/tasks/new")}
+            className="bg-primary hover:bg-primary/90"
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             New Task
           </Button>
@@ -47,7 +53,7 @@ export default function Index() {
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="p-4 rounded-lg border border-gray-200 hover:border-primary/50 transition-colors"
+                  className="p-4 rounded-lg border border-gray-200 hover:border-primary/50 transition-colors cursor-pointer"
                 >
                   <div className="flex justify-between items-start">
                     <div>
