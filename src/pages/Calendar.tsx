@@ -4,33 +4,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { format } from "date-fns";
 import { Clock, Calendar as CalendarIcon } from "lucide-react";
-
-// Sample data - in a real app, this would come from your backend
-const tasks = [
-  {
-    id: 1,
-    title: "Weekly Grocery Shopping",
-    priority: "high",
-    dueDate: "2024-03-20",
-    assignedTo: ["Mom", "Dad"],
-    category: "Shopping",
-  },
-  {
-    id: 2,
-    title: "Clean Garage",
-    priority: "medium",
-    dueDate: "2024-03-22",
-    assignedTo: ["Dad", "Kids"],
-    category: "Home",
-  },
-];
+import { useTasks } from "@/hooks/useTasks";
 
 export default function CalendarView() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const { tasks, isLoading } = useTasks();
 
-  const tasksForSelectedDate = tasks.filter(
-    (task) => task.dueDate === format(date || new Date(), "yyyy-MM-dd")
-  );
+  const tasksForSelectedDate = tasks?.filter((task) => {
+    if (!date) return false;
+    const taskDate = new Date(task.due_date);
+    return (
+      taskDate.getFullYear() === date.getFullYear() &&
+      taskDate.getMonth() === date.getMonth() &&
+      taskDate.getDate() === date.getDate()
+    );
+  });
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto">
+          <div>Loading...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -61,12 +59,12 @@ export default function CalendarView() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                Tasks for {format(date || new Date(), "MMMM d, yyyy")}
+                Tasks for {date ? format(date, "MMMM d, yyyy") : "No date selected"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {tasksForSelectedDate.length > 0 ? (
+                {tasksForSelectedDate && tasksForSelectedDate.length > 0 ? (
                   tasksForSelectedDate.map((task) => (
                     <div
                       key={task.id}
@@ -78,14 +76,16 @@ export default function CalendarView() {
                             {task.title}
                           </h3>
                           <p className="text-sm text-gray-500 mt-1">
-                            Assigned to: {task.assignedTo.join(", ")}
+                            {task.description}
                           </p>
                         </div>
                         <span
                           className={`px-2 py-1 rounded text-xs ${
                             task.priority === "high"
                               ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
+                              : task.priority === "medium"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-green-100 text-green-700"
                           }`}
                         >
                           {task.priority}
@@ -93,7 +93,7 @@ export default function CalendarView() {
                       </div>
                       <div className="flex items-center mt-3 text-sm text-gray-500">
                         <Clock className="h-4 w-4 mr-1" />
-                        Due: {task.dueDate}
+                        Due: {format(new Date(task.due_date), "PPp")}
                       </div>
                     </div>
                   ))
