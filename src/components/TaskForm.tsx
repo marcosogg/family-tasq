@@ -36,9 +36,9 @@ export function TaskForm() {
     },
   });
 
-  const onSubmit = async (data: TaskFormData) => {
+  const onSubmit = async (values: TaskFormData) => {
     try {
-      await createTask(data);
+      await createTask(values);
     } catch (error) {
       console.error("Failed to create task:", error);
     }
