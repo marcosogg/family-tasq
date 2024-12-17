@@ -6,33 +6,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlusCircle, Calendar, Clock, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-
-const tasks = [
-  {
-    id: 1,
-    title: "Weekly Grocery Shopping",
-    priority: "high",
-    dueDate: "2024-03-20",
-    assignedTo: ["Mom", "Dad"],
-    category: "Shopping",
-  },
-  {
-    id: 2,
-    title: "Clean Garage",
-    priority: "medium",
-    dueDate: "2024-03-22",
-    assignedTo: ["Dad", "Kids"],
-    category: "Home",
-  },
-];
+import { useTasks } from "@/hooks/useTasks";
 
 export default function Index() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("dueDate");
   const [filterPriority, setFilterPriority] = useState("all");
+  const { tasks, isLoading } = useTasks();
 
-  const filteredAndSortedTasks = tasks
+  const filteredAndSortedTasks = (tasks || [])
     .filter((task) => {
       if (filterPriority === "all") return true;
       return task.priority === filterPriority;
@@ -42,7 +25,7 @@ export default function Index() {
     )
     .sort((a, b) => {
       if (sortBy === "dueDate") {
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
       }
       if (sortBy === "priority") {
         const priorityOrder = { high: 3, medium: 2, low: 1 };
@@ -50,6 +33,16 @@ export default function Index() {
       }
       return 0;
     });
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto">
+          <div>Loading...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -113,20 +106,22 @@ export default function Index() {
                     <div>
                       <h3 className="font-medium text-gray-900">{task.title}</h3>
                       <p className="text-sm text-gray-500 mt-1">
-                        Assigned to: {task.assignedTo.join(", ")}
+                        {task.description}
                       </p>
                     </div>
                     <span className={`px-2 py-1 rounded text-xs ${
                       task.priority === "high" 
                         ? "bg-red-100 text-red-700"
-                        : "bg-yellow-100 text-yellow-700"
+                        : task.priority === "medium"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-green-100 text-green-700"
                     }`}>
                       {task.priority}
                     </span>
                   </div>
                   <div className="flex items-center mt-3 text-sm text-gray-500">
                     <Clock className="h-4 w-4 mr-1" />
-                    Due: {task.dueDate}
+                    Due: {new Date(task.due_date).toLocaleDateString()}
                   </div>
                 </div>
               ))}
@@ -140,20 +135,29 @@ export default function Index() {
             <h2 className="text-xl font-semibold mb-4">Quick Stats</h2>
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-primary/10 rounded-lg">
-                <div className="text-2xl font-bold text-primary">12</div>
+                <div className="text-2xl font-bold text-primary">{tasks?.length || 0}</div>
                 <div className="text-sm text-gray-600">Active Tasks</div>
               </div>
               <div className="p-4 bg-secondary/10 rounded-lg">
-                <div className="text-2xl font-bold text-secondary">8</div>
-                <div className="text-sm text-gray-600">Completed Today</div>
+                <div className="text-2xl font-bold text-secondary">
+                  {tasks?.filter(t => t.completed)?.length || 0}
+                </div>
+                <div className="text-sm text-gray-600">Completed Tasks</div>
               </div>
               <div className="p-4 bg-accent/10 rounded-lg">
-                <div className="text-2xl font-bold text-accent">3</div>
-                <div className="text-sm text-gray-600">Family Groups</div>
+                <div className="text-2xl font-bold text-accent">
+                  {tasks?.filter(t => new Date(t.due_date) < new Date())?.length || 0}
+                </div>
+                <div className="text-sm text-gray-600">Overdue Tasks</div>
               </div>
               <div className="p-4 bg-gray-100 rounded-lg">
-                <div className="text-2xl font-bold text-gray-700">5</div>
-                <div className="text-sm text-gray-600">Due Soon</div>
+                <div className="text-2xl font-bold text-gray-700">
+                  {tasks?.filter(t => 
+                    new Date(t.due_date) > new Date() && 
+                    new Date(t.due_date) < new Date(Date.now() + 24 * 60 * 60 * 1000)
+                  )?.length || 0}
+                </div>
+                <div className="text-sm text-gray-600">Due Today</div>
               </div>
             </div>
           </Card>
