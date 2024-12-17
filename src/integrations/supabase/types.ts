@@ -33,6 +33,98 @@ export type Database = {
         }
         Relationships: []
       }
+      family_groups: {
+        Row: {
+          id: string
+          name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      family_group_invitations: {
+        Row: {
+          id: string
+          family_group_id: string
+          inviter_id: string
+          invitee_email: string
+          status: 'pending' | 'accepted' | 'rejected'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          family_group_id: string
+          inviter_id: string
+          invitee_email: string
+          status?: 'pending' | 'accepted' | 'rejected'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          family_group_id?: string
+          inviter_id?: string
+          invitee_email?: string
+          status?: 'pending' | 'accepted' | 'rejected'
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_group_invitations_family_group_id_fkey"
+            columns: ["family_group_id"]
+            referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_group_invitations_inviter_id_fkey"
+            columns: ["inviter_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      user_family_groups: {
+        Row: {
+          user_id: string
+          family_group_id: string
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          family_group_id: string
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          family_group_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_family_groups_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_family_groups_family_group_id_fkey"
+            columns: ["family_group_id"]
+            referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       tasks: {
         Row: {
           category: string
@@ -45,6 +137,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          family_group_id: string | null
         }
         Insert: {
           category: string
@@ -57,6 +150,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          family_group_id?: string | null
         }
         Update: {
           category?: string
@@ -69,8 +163,16 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          family_group_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_family_group_id_fkey"
+            columns: ["family_group_id"]
+            referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

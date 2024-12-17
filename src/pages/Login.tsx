@@ -8,12 +8,15 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         navigate("/");
       }
     });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   return (
@@ -31,6 +34,17 @@ export default function Login() {
             appearance={{ theme: ThemeSupa }}
             theme="light"
             providers={[]}
+            redirectTo={window.location.origin}
+            onlyThirdPartyProviders={false}
+            magicLink={false}
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: 'Email',
+                  password_label: 'Password',
+                }
+              }
+            }}
           />
         </div>
       </div>

@@ -3,11 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Calendar, Clock } from "lucide-react";
+import { PlusCircle, Calendar, Clock, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useTasks } from "@/hooks/useTasks";
+import { useFamilyGroups } from "@/hooks/useFamilyGroups";
 import { TaskDetail } from "@/components/TaskDetail";
+import { FamilyGroupManager } from "@/components/FamilyGroupManager";
 import { Database } from "@/integrations/supabase/types";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
@@ -18,6 +20,7 @@ export default function Index() {
   const [sortBy, setSortBy] = useState("dueDate");
   const [filterPriority, setFilterPriority] = useState("all");
   const { tasks, isLoading } = useTasks();
+  const { familyGroups, currentFamilyGroup, switchFamilyGroup } = useFamilyGroups();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const filteredAndSortedTasks = (tasks || [])
@@ -52,21 +55,58 @@ export default function Index() {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Welcome to Tazq</h1>
             <p className="text-gray-600 mt-2">Manage your family tasks efficiently</p>
           </div>
-          <Button 
-            onClick={() => navigate("/tasks/new")}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Task
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <FamilyGroupManager />
+            <Button 
+              onClick={() => navigate("/tasks/new")}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Task
+            </Button>
+          </div>
         </div>
 
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          <Select 
+            value={currentFamilyGroup?.id || "personal"} 
+            onValueChange={(value) => {
+              const group = familyGroups.find(g => g.id === value);
+              if (group) {
+                switchFamilyGroup(group);
+              }
+            }}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select Family Group">
+                {currentFamilyGroup ? (
+                  <div className="flex items-center">
+                    <Users className="mr-2 h-4 w-4" />
+                    {currentFamilyGroup.name}
+                  </div>
+                ) : (
+                  "Personal Tasks"
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="personal">Personal Tasks</SelectItem>
+              {familyGroups.map((group) => (
+                <SelectItem key={group.id} value={group.id}>
+                  <div className="flex items-center">
+                    <Users className="mr-2 h-4 w-4" />
+                    {group.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Input
             placeholder="Search tasks..."
             value={searchQuery}
@@ -99,7 +139,7 @@ export default function Index() {
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
               <Calendar className="mr-2 h-5 w-5 text-primary" />
-              Today's Tasks
+              {currentFamilyGroup ? `${currentFamilyGroup.name}'s Tasks` : "Personal Tasks"}
             </h2>
             <div className="space-y-4">
               {filteredAndSortedTasks.map((task) => (

@@ -3,26 +3,31 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { useFamilyGroups } from "./useFamilyGroups";
 
 export const useTasks = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { currentFamilyGroup } = useFamilyGroups();
 
   // Set up real-time subscription
   useEffect(() => {
+    // Only set up subscription if we have a family group
+    if (!currentFamilyGroup?.id) return;
+
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel(`tasks-${currentFamilyGroup.id}`) // Unique channel name per family group
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'tasks'
+          table: 'tasks',
+          filter: `family_group_id=eq.${currentFamilyGroup.id}` // Filter for specific family group
         },
         () => {
-          // Invalidate and refetch tasks when there's a change
-          queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          queryClient.invalidateQueries({ queryKey: ['tasks', currentFamilyGroup.id] });
         }
       )
       .subscribe();
@@ -30,19 +35,43 @@ export const useTasks = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, currentFamilyGroup?.id]);
 
   const { data: tasks, isLoading } = useQuery({
-    queryKey: ['tasks'],
+    queryKey: ['tasks', currentFamilyGroup?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      let query = supabase
         .from('tasks')
-        .select('*')
+        .select(`
+          *,
+          family_groups (
+            name
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      // Filter by family group if one is selected
+      if (currentFamilyGroup) {
+        query = query.eq('family_group_id', currentFamilyGroup.id);
+      } else {
+        // If no family group is selected, only show tasks without a family group
+        // that belong to the current user
+        query = query.filter('family_group_id', 'is', null)
+          .filter('user_id', 'eq', user.id);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching tasks:', error);
+        throw error;
+      }
       return data;
     },
+    enabled: true,
   });
 
   const createTask = async (data: {
@@ -52,52 +81,78 @@ export const useTasks = () => {
     category: "home" | "school" | "shopping" | "other";
     dueDate: Date;
   }) => {
-    const { error } = await supabase.from("tasks").insert({
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      category: data.category,
-      due_date: data.dueDate.toISOString(),
-      user_id: (await supabase.auth.getUser()).data.user?.id,
-    });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create task. Please try again.",
-        variant: "destructive",
+      const { error } = await supabase.from("tasks").insert({
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        category: data.category,
+        due_date: data.dueDate.toISOString(),
+        user_id: user.id,
+        family_group_id: currentFamilyGroup?.id || null,
+        completed: false, // Set default value
       });
-      throw error;
+
+      if (error) {
+        console.error('Error creating task:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create task. Please try again.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Task created successfully!",
+      });
+
+      navigate("/");
+    } catch (err) {
+      console.error('Error in createTask:', err);
+      throw err;
     }
-
-    toast({
-      title: "Success",
-      description: "Task created successfully!",
-    });
-
-    navigate("/");
   };
 
   const toggleTaskCompletion = async (taskId: string, completed: boolean) => {
-    const { error } = await supabase
-      .from("tasks")
-      .update({ completed })
-      .eq("id", taskId);
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ 
+          completed,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", taskId);
 
-    if (error) {
+      if (error) {
+        console.error('Error toggling task completion:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update task. Please try again.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
       toast({
-        title: "Error",
-        description: "Failed to update task. Please try again.",
-        variant: "destructive",
+        title: "Success",
+        description: completed ? "Task marked as completed!" : "Task marked as incomplete!",
       });
-      throw error;
+    } catch (err) {
+      console.error('Error in toggleTaskCompletion:', err);
+      throw err;
     }
-
-    toast({
-      title: "Success",
-      description: completed ? "Task marked as completed!" : "Task marked as incomplete!",
-    });
   };
 
-  return { createTask, toggleTaskCompletion, tasks, isLoading };
+  return { 
+    createTask, 
+    toggleTaskCompletion, 
+    tasks, 
+    isLoading,
+    currentFamilyGroup
+  };
 };

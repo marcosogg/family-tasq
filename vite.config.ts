@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 8080,
+      clientPort: 8080,
+    },
+    cors: true,
   },
   plugins: [
     react(),
@@ -18,5 +25,8 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  optimizeDeps: {
+    include: ['@supabase/auth-ui-react', '@supabase/auth-ui-shared'],
   },
 }));
