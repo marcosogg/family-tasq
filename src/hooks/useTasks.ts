@@ -78,5 +78,26 @@ export const useTasks = () => {
     navigate("/");
   };
 
-  return { createTask, tasks, isLoading };
+  const toggleTaskCompletion = async (taskId: string, completed: boolean) => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({ completed })
+      .eq("id", taskId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update task. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Success",
+      description: completed ? "Task marked as completed!" : "Task marked as incomplete!",
+    });
+  };
+
+  return { createTask, toggleTaskCompletion, tasks, isLoading };
 };
