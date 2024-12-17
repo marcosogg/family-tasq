@@ -3,10 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Calendar, Clock, Users } from "lucide-react";
+import { PlusCircle, Calendar, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useTasks } from "@/hooks/useTasks";
+import { TaskDetail } from "@/components/TaskDetail";
+import { Database } from "@/integrations/supabase/types";
+
+type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
 export default function Index() {
   const navigate = useNavigate();
@@ -14,6 +18,7 @@ export default function Index() {
   const [sortBy, setSortBy] = useState("dueDate");
   const [filterPriority, setFilterPriority] = useState("all");
   const { tasks, isLoading } = useTasks();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const filteredAndSortedTasks = (tasks || [])
     .filter((task) => {
@@ -29,7 +34,7 @@ export default function Index() {
       }
       if (sortBy === "priority") {
         const priorityOrder = { high: 3, medium: 2, low: 1 };
-        return priorityOrder[b.priority] - priorityOrder[a.priority];
+        return priorityOrder[b.priority as keyof typeof priorityOrder] - priorityOrder[a.priority as keyof typeof priorityOrder];
       }
       return 0;
     });
@@ -101,13 +106,16 @@ export default function Index() {
                 <div
                   key={task.id}
                   className="p-4 rounded-lg border border-gray-200 hover:border-primary/50 transition-colors cursor-pointer"
+                  onClick={() => setSelectedTask(task)}
                 >
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-medium text-gray-900">{task.title}</h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {task.description}
-                      </p>
+                      {task.description && (
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                          {task.description}
+                        </p>
+                      )}
                     </div>
                     <span className={`px-2 py-1 rounded text-xs ${
                       task.priority === "high" 
@@ -162,6 +170,12 @@ export default function Index() {
             </div>
           </Card>
         </div>
+
+        <TaskDetail
+          task={selectedTask}
+          isOpen={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
       </div>
     </Layout>
   );
