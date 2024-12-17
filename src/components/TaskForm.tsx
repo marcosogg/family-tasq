@@ -30,6 +30,9 @@ export function TaskForm() {
     defaultValues: {
       title: "",
       description: "",
+      priority: "low",
+      category: "home",
+      dueDate: new Date(),
     },
   });
 
