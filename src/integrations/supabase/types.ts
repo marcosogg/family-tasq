@@ -9,6 +9,69 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      family_group_invitations: {
+        Row: {
+          created_at: string
+          family_group_id: string
+          id: string
+          invitee_email: string
+          inviter_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          family_group_id: string
+          id?: string
+          invitee_email: string
+          inviter_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          family_group_id?: string
+          id?: string
+          invitee_email?: string
+          inviter_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_group_invitations_family_group_id_fkey"
+            columns: ["family_group_id"]
+            isOneToOne: false
+            referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_group_invitations_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_groups: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -33,96 +96,36 @@ export type Database = {
         }
         Relationships: []
       }
-      family_groups: {
+      task_assignments: {
         Row: {
-          id: string
-          name: string
           created_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          created_at?: string
-        }
-        Relationships: []
-      }
-      family_group_invitations: {
-        Row: {
           id: string
-          family_group_id: string
-          inviter_id: string
-          invitee_email: string
-          status: 'pending' | 'accepted' | 'rejected'
-          created_at: string
+          task_id: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
-          id?: string
-          family_group_id: string
-          inviter_id: string
-          invitee_email: string
-          status?: 'pending' | 'accepted' | 'rejected'
           created_at?: string
+          id?: string
+          task_id?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
-          id?: string
-          family_group_id?: string
-          inviter_id?: string
-          invitee_email?: string
-          status?: 'pending' | 'accepted' | 'rejected'
           created_at?: string
+          id?: string
+          task_id?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "family_group_invitations_family_group_id_fkey"
-            columns: ["family_group_id"]
-            referencedRelation: "family_groups"
+            foreignKeyName: "task_assignments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "family_group_invitations_inviter_id_fkey"
-            columns: ["inviter_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      user_family_groups: {
-        Row: {
-          user_id: string
-          family_group_id: string
-          created_at: string
-        }
-        Insert: {
-          user_id: string
-          family_group_id: string
-          created_at?: string
-        }
-        Update: {
-          user_id?: string
-          family_group_id?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_family_groups_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_family_groups_family_group_id_fkey"
-            columns: ["family_group_id"]
-            referencedRelation: "family_groups"
-            referencedColumns: ["id"]
-          }
         ]
       }
       tasks: {
@@ -132,12 +135,12 @@ export type Database = {
           created_at: string
           description: string | null
           due_date: string
+          family_group_id: string | null
           id: string
           priority: string
           title: string
           updated_at: string
           user_id: string
-          family_group_id: string | null
         }
         Insert: {
           category: string
@@ -145,12 +148,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date: string
+          family_group_id?: string | null
           id?: string
           priority: string
           title: string
           updated_at?: string
           user_id: string
-          family_group_id?: string | null
         }
         Update: {
           category?: string
@@ -158,20 +161,54 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string
+          family_group_id?: string | null
           id?: string
           priority?: string
           title?: string
           updated_at?: string
           user_id?: string
-          family_group_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "tasks_family_group_id_fkey"
             columns: ["family_group_id"]
+            isOneToOne: false
             referencedRelation: "family_groups"
             referencedColumns: ["id"]
-          }
+          },
+        ]
+      }
+      user_family_groups: {
+        Row: {
+          created_at: string | null
+          family_group_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          family_group_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          family_group_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_family_groups_family_group_id_fkey"
+            columns: ["family_group_id"]
+            isOneToOne: false
+            referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_family_groups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
