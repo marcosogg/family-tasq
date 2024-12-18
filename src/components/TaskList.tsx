@@ -8,7 +8,7 @@ type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
 interface TaskListProps {
   tasks: Task[];
-  title: string;
+  title: React.ReactNode;
   emptyMessage?: string;
 }
 

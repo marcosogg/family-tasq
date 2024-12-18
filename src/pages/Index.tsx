@@ -154,7 +154,12 @@ export default function Index() {
             {assignedTasksList.length > 0 && (
               <TaskList
                 tasks={assignedTasksList}
-                title="Tasks Assigned to Me"
+                title={
+                  <div className="flex items-center">
+                    <Users className="mr-2 h-5 w-5 text-primary" />
+                    Tasks Assigned to Me
+                  </div>
+                }
                 emptyMessage="No tasks assigned to you"
               />
             )}
