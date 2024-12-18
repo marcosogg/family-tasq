@@ -98,6 +98,8 @@ export type Database = {
       }
       task_assignments: {
         Row: {
+          assigned_at: string | null
+          assigned_by: string | null
           created_at: string
           id: string
           task_id: string | null
@@ -105,6 +107,8 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
           created_at?: string
           id?: string
           task_id?: string | null
@@ -112,6 +116,8 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
           created_at?: string
           id?: string
           task_id?: string | null
