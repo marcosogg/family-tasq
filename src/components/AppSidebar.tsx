@@ -8,14 +8,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { supabase } from "@/integrations/supabase/client";
+} from "./ui/sidebar";
+import { supabase } from "../integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { FamilyGroupManager } from "./FamilyGroupManager";
 
 const menuItems = [
   { title: "Dashboard", icon: Home, url: "/" },
   { title: "Calendar", icon: Calendar, url: "/calendar" },
-  { title: "Family Groups", icon: Users, url: "/groups" },
   { title: "Add Task", icon: PlusCircle, url: "/tasks/new" },
   { title: "Completed", icon: CheckCircle2, url: "/completed" },
 ];
@@ -48,6 +48,9 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <FamilyGroupManager />
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={handleLogout}>
                   <div className="flex items-center gap-3">

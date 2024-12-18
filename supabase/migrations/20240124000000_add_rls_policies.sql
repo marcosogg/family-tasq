@@ -8,10 +8,11 @@ alter table "public"."tasks" enable row level security;
 create policy "users_can_view_family_and_personal_tasks" on "public"."tasks"
   for select using (
     (family_group_id is null and user_id = auth.uid()) or
-    family_group_id in (
-      select family_group_id 
-      from user_family_groups 
-      where user_id = auth.uid()
+    exists (
+      select 1 
+      from user_family_groups ufg
+      where ufg.family_group_id = tasks.family_group_id
+      and ufg.user_id = auth.uid()
     )
   );
 
@@ -20,10 +21,11 @@ create policy "users_can_view_family_and_personal_tasks" on "public"."tasks"
 create policy "users_can_insert_family_and_personal_tasks" on "public"."tasks"
   for insert with check (
     (family_group_id is null and user_id = auth.uid()) or
-    family_group_id in (
-      select family_group_id 
-      from user_family_groups 
-      where user_id = auth.uid()
+    exists (
+      select 1 
+      from user_family_groups ufg
+      where ufg.family_group_id = family_group_id
+      and ufg.user_id = auth.uid()
     )
   );
 
@@ -32,10 +34,11 @@ create policy "users_can_insert_family_and_personal_tasks" on "public"."tasks"
 create policy "users_can_update_family_and_personal_tasks" on "public"."tasks"
   for update using (
     (family_group_id is null and user_id = auth.uid()) or
-    family_group_id in (
-      select family_group_id 
-      from user_family_groups 
-      where user_id = auth.uid()
+    exists (
+      select 1 
+      from user_family_groups ufg
+      where ufg.family_group_id = tasks.family_group_id
+      and ufg.user_id = auth.uid()
     )
   );
 
@@ -44,10 +47,11 @@ create policy "users_can_update_family_and_personal_tasks" on "public"."tasks"
 create policy "users_can_delete_family_and_personal_tasks" on "public"."tasks"
   for delete using (
     (family_group_id is null and user_id = auth.uid()) or
-    family_group_id in (
-      select family_group_id 
-      from user_family_groups 
-      where user_id = auth.uid()
+    exists (
+      select 1 
+      from user_family_groups ufg
+      where ufg.family_group_id = tasks.family_group_id
+      and ufg.user_id = auth.uid()
     )
   );
 
@@ -58,10 +62,11 @@ alter table "public"."family_groups" enable row level security;
 -- Users can see family groups they are members of
 create policy "users_can_view_their_family_groups" on "public"."family_groups"
   for select using (
-    id in (
-      select family_group_id 
-      from user_family_groups 
-      where user_id = auth.uid()
+    exists (
+      select 1 
+      from user_family_groups ufg
+      where ufg.family_group_id = family_groups.id
+      and ufg.user_id = auth.uid()
     )
   );
 
@@ -77,7 +82,12 @@ alter table "public"."user_family_groups" enable row level security;
 -- Users can see all members of family groups they belong to
 create policy "users_can_view_family_group_members" on "public"."user_family_groups"
   for select using (
-    user_id = auth.uid()
+    exists (
+      select 1 
+      from user_family_groups ufg
+      where ufg.family_group_id = user_family_groups.family_group_id
+      and ufg.user_id = auth.uid()
+    )
   );
 
 -- Policy for joining family groups:

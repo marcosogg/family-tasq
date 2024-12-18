@@ -23,7 +23,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   if (isAuthenticated === null) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="text-2xl font-bold text-primary animate-pulse">
+            Tazq
+          </div>
+          <div className="text-sm text-gray-500">Loading your tasks...</div>
+        </div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -167,6 +167,9 @@ export function FamilyGroupManager() {
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Family Groups</DialogTitle>
+          <DialogDescription>
+            Create, join, or manage your family groups and invitations.
+          </DialogDescription>
         </DialogHeader>
         
         <Tabs defaultValue="groups" className="w-full">

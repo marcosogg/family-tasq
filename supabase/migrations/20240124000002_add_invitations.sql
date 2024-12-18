@@ -23,26 +23,33 @@ create index if not exists "idx_family_group_invitations_invitee_email"
 create policy "users_can_view_related_invitations" on "public"."family_group_invitations"
     for select using (
         inviter_id = auth.uid() or 
-        invitee_email = (
-            select email from profiles where id = auth.uid()
+        exists (
+            select 1 
+            from profiles p
+            where p.id = auth.uid()
+            and p.email = family_group_invitations.invitee_email
         )
     );
 
 -- Users can create invitations for family groups they belong to
 create policy "users_can_create_invitations" on "public"."family_group_invitations"
     for insert with check (
-        family_group_id in (
-            select family_group_id 
-            from user_family_groups 
-            where user_id = auth.uid()
+        exists (
+            select 1 
+            from user_family_groups ufg
+            where ufg.family_group_id = family_group_id
+            and ufg.user_id = auth.uid()
         )
     );
 
 -- Users can update invitations they've received
 create policy "users_can_update_received_invitations" on "public"."family_group_invitations"
     for update using (
-        invitee_email = (
-            select email from profiles where id = auth.uid()
+        exists (
+            select 1 
+            from profiles p
+            where p.id = auth.uid()
+            and p.email = family_group_invitations.invitee_email
         )
     );
 
