@@ -18,7 +18,7 @@ export const useAssignedTasks = () => {
               name
             )
           ),
-          assigned_by_user:profiles!task_assignments_assigned_by_fkey(
+          assigned_by_user:profiles(
             full_name,
             email
           )

@@ -18,14 +18,12 @@ export const useTaskQueries = (familyGroupId: string | null) => {
         `)
         .order('created_at', { ascending: false });
 
-      // Filter by family group if one is selected
       if (familyGroupId) {
         query = query.eq('family_group_id', familyGroupId);
       } else {
-        // If no family group is selected, only show tasks without a family group
-        // that belong to the current user
-        query = query.filter('family_group_id', 'is', null)
-          .filter('user_id', 'eq', user.id);
+        query = query
+          .is('family_group_id', null)
+          .eq('user_id', user.id);
       }
 
       const { data, error } = await query;
@@ -34,9 +32,9 @@ export const useTaskQueries = (familyGroupId: string | null) => {
         console.error('Error fetching tasks:', error);
         throw error;
       }
+
       return data;
     },
-    enabled: true,
   });
 
   return { tasks, isLoading };
